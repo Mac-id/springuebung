@@ -31,8 +31,13 @@ class ArticleServiceTest : FunSpec({
 
     test("should delete article from service") {
         val id: Long = 1
+
         every { articleRepository.deleteById(id) } just runs
+
+        every { articleRepository.existsById(id) } returns true
+
         articleService.deleteArticleById(id)
+
         verify {
             articleRepository.deleteById(id)
         }
@@ -51,14 +56,27 @@ class ArticleServiceTest : FunSpec({
         val article = Article(1, "new", 5.0)
 
         every { articleRepository.save(article) } returns article
-        every { articleRepository.findById(1) } returns Optional.of(article)
+        every { articleRepository.existsById(article.id) } returns true
 
         val updatedArticle = articleService.updateArticle(article)
         verify {
-            articleRepository.findById(1)
+            articleRepository.existsById(1)
             articleRepository.save(article)
         }
+    }
+
+    test("should find articles by title"){
+        val title  ="title"
+
+        every { articleRepository.findByTitle(title) } returns mutableListOf(
+            Article(1, "new", 5.0),
+            Article(2, "new", 5.0),
+            Article(3, "new", 5.0)
+        )
+
+        val articles = articleService.getArticlesByTitle(title)
 
 
+        articles.size shouldBe 3
     }
 })
